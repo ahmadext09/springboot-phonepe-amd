@@ -12,4 +12,7 @@ public class AppConstants {
         String botToken = "5644977891:AAGYiDBwBeBNL3r5gSQ3JCmZQSULTm0DzhM";
         long chatId = -4003148302L;
     }
+    interface Usage {
+        String APP_BASE_URL = "https://tiny-mails-happen.loca.lt";
+    }
 }

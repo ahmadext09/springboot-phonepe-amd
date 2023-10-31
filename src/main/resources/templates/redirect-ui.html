@@ -1,0 +1,32 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <title>Payment Status</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h1>Payment Status</h1>-->
+<!--<p>Payment Status: <span th:text="${paymentStatus}">Payment Status Goes Here ...Please wait</span></p>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payment Status</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            height: 100vh; /* Ensure the body takes the full viewport height */
+            margin: 0; /* Remove default margin */
+        }
+    </style>
+</head>
+<body>
+<div style="text-align: center;">
+    <h1>Payment Status</h1>
+    <p>Payment Status: <span th:text="${paymentStatus}">Payment Status Goes Here</span></p>
+</div>
+</body>
+</html>

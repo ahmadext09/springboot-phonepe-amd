@@ -1,11 +1,11 @@
 package com.amdck.phonepe.pg.model;
 
 public class PhonepeOrder {
-    private float amount;
+    private double amount;
     private String email;
 
 
-    public PhonepeOrder(long amount, String email) {
+    public PhonepeOrder(double amount, String email) {
         this.amount = amount;
         this.email = email;
     }
@@ -16,12 +16,12 @@ public class PhonepeOrder {
     }
 
 
-    public float getAmount() {
+    public double getAmount() {
         return amount;
     }
 
 
-    public void setAmount(float amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 

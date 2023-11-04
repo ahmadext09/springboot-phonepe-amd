@@ -29,7 +29,10 @@ public class AppController {
 
     @Autowired
     private AppService appService;
-    private PaymentResponse paymentResult;
+    private PaymentResponse paymentResultGlobal;
+
+    private String test;
+    private String test2;
 
     String pgUrl = "/pg/v1/pay";
     String debugSaltKey = "05b8ed83-51ef-49ae-bb8b-aac4df140457";
@@ -45,18 +48,15 @@ public class AppController {
     @ResponseBody
     public ResponseEntity<String> initiatePhonePeTxn(@RequestBody PhonepeOrder phonepeOrder) throws JSONException {
         String MERCHANT_TRANSACTION_ID = String.valueOf(System.currentTimeMillis());
-        globalMerchantTransId=MERCHANT_TRANSACTION_ID;
+        globalMerchantTransId = MERCHANT_TRANSACTION_ID;
         JSONObject phonePeBody = new JSONObject();
         phonePeBody.put("merchantId", debugMID);
-        //phonePeBody.put("merchantTransactionId", System.currentTimeMillis() + "");
         phonePeBody.put("merchantTransactionId", MERCHANT_TRANSACTION_ID);
-        phonePeBody.put("amount", Float.toString(phonepeOrder.getAmount()).replace(".", "") + "0");
+        phonePeBody.put("amount", Double.toString(phonepeOrder.getAmount()).replace(".", "") + "0");
         phonePeBody.put("merchantUserId", "samsungs9");
-//        phonePeBody.put("redirectUrl", "https://www.youtube.com/");
-        phonePeBody.put("redirectUrl", AppConstants.Usage.APP_BASE_URL+"/api/ui-redirect-url?merchantId=PGTESTPAYUAT111&merchantTransactionId="+MERCHANT_TRANSACTION_ID);
+        phonePeBody.put("redirectUrl", AppConstants.Usage.APP_BASE_URL + "/api/ui-redirect-url?merchantId=PGTESTPAYUAT111&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
         phonePeBody.put("redirectMode", "REDIRECT");
-        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL+"/api/phonepe-callback?merchantId=PGTESTPAYUAT111&merchantTransactionId="+MERCHANT_TRANSACTION_ID);
-        //phonePeBody.put("callbackUrl", "https://webhook.site/4b626c83-8d0e-47e8-8745-9928037adbec");
+        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + "/api/phonepe-callback?merchantId=PGTESTPAYUAT111&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
         JSONObject paymentInstrument = new JSONObject();
         paymentInstrument.put("type", "PAY_PAGE");
         phonePeBody.put("paymentInstrument", paymentInstrument);
@@ -100,52 +100,35 @@ public class AppController {
 
     @PostMapping(AppConstants.Endpoints.PHONEPE_CALLBACK)
     @ResponseBody
-    public ResponseEntity<String> phonepeCallback(@RequestBody String requestBody, @RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId) throws IOException {
-//    public ResponseEntity<String> phonepeCallback(@RequestBody String requestBody) throws IOException {
+    public ResponseEntity<String> phonepeCallback(@RequestBody String requestBody, @RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, @RequestParam("userEmail") String userEmail) throws IOException {
+
+        test = requestBody;
         String result = requestBody;
 
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        ResultModel resultModel = objectMapper.readValue(result, ResultModel.class);
-//
-//        String base64EncodedData = resultModel.getResponse();
-//
-//        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedData);
-//        String resultjson = new String(decodedBytes);
-//
-//        ObjectMapper paymentObjectMapper = new ObjectMapper();
-//        PaymentResponse paymentResponse = paymentObjectMapper.readValue(resultjson, PaymentResponse.class);
-//        if (paymentResponse != null) {
-//            paymentResult = paymentResponse;
-//        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultModel resultModel = objectMapper.readValue(result, ResultModel.class);
 
-        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, "hello", "HTML");
-//        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, merchantId, "HTML");
-//        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, merchantTransactionId, "HTML");
+        String base64EncodedData = resultModel.getResponse();
+
+        byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedData);
+        String resultjson = new String(decodedBytes);
+        test2=resultjson;
+        ObjectMapper paymentObjectMapper = new ObjectMapper();
+        PaymentResponse paymentResponse = paymentObjectMapper.readValue(resultjson, PaymentResponse.class);
+        if(paymentResponse != null){
+            paymentResultGlobal = paymentResponse;
+        }
+
+
+        String payAmt= String.valueOf(paymentResponse.getData().getAmount());
+
+
+        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, payAmt, "HTML");
         return new ResponseEntity<>("ok", HttpStatus.OK);
     }
 
 
-    @GetMapping("/get-redirect-url")
-    @ResponseBody
-    public PaymentResponse getRedirectUrl(@RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId){
-        getEndPointCounter++;
-      //  return new ResponseEntity<>(callCheckStatusApi(merchantId, merchantTransactionId), HttpStatus.OK);
-        String result = callCheckStatusApi(merchantId, merchantTransactionId);
-        ObjectMapper paymentObjectMapper = new ObjectMapper();
-        try {
-            PaymentResponse paymentStatus = paymentObjectMapper.readValue(result, PaymentResponse.class);
-            paymentResult =paymentStatus;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return paymentResult;
-    }
 
-    @PostMapping("/post-redirect-url")
-    @ResponseBody
-    public ResponseEntity<String> postRedirectUrl(@RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId){
-        return new ResponseEntity<>(callCheckStatusApi(merchantId, merchantTransactionId), HttpStatus.OK);
-    }
 
     public String callCheckStatusApi( String merchantId, String merchantTransactionId){
 
@@ -174,42 +157,10 @@ public class AppController {
 
 
 
-    @GetMapping("/test")
-    @ResponseBody
-    public int getTestString() throws IOException {
-//        if (paymentResult.isSuccess()) {
-////            ObjectMapper objectMapper = new ObjectMapper();
-////            ResultModel resultModel = objectMapper.readValue(result, ResultModel.class);
-////
-////            String base64EncodedData = resultModel.getResponse();
-////
-////            byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedData);
-////            String resultjson = new String(decodedBytes);
-//////            return resultjson;
-////
-//            long longValue = paymentResult.getData().getAmount();
-//
-//// Convert long to double
-//            double doubleValue; // Dividing by 100 to move the decimal point
-//            doubleValue = (double) longValue / 100;
-//
-//// Format double to have exactly two decimal places
-//           // DecimalFormat decimalFormat = new DecimalFormat("#0.00");
-//            String formattedValue = String.format("%.2f", doubleValue);
-//           // String formattedValue = decimalFormat.format(doubleValue);
-//
-//            return formattedValue;
-//           // return paymentResult;
-//            //return longValue;
-//        }
-//        else
-//           return "error from server";
-        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, "working", "HTML");
-        return getEndPointCounter;
-    }
+
 
     @GetMapping("/ui-redirect-url")
-    public String redirectUIPage(@RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, Model model) {
+    public String redirectUIPage(@RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, @RequestParam("userEmail") String userEmail, Model model) {
 
         String paymentStatusText = "processing please wait";
         String result = callCheckStatusApi(merchantId, merchantTransactionId);
@@ -217,9 +168,14 @@ public class AppController {
         try {
             PaymentResponse paymentStatus = paymentObjectMapper.readValue(result, PaymentResponse.class);
             if (paymentStatus.isSuccess()) {
-                paymentStatusText = "Success, Points Added";
+                boolean isPointsAdded = addPoints(paymentStatus.getData().getAmount(), paymentStatus.getData().getTransactionId(), paymentStatus.getData().getMerchantTransactionId(), userEmail);
+                if (isPointsAdded) {
+                    paymentStatusText = AppConstants.STRING.STATUS_SUCCESS;
+                } else {
+                    paymentStatusText = AppConstants.STRING.STATUS_PROCESS_FAILED;
+                }
             } else
-                paymentStatusText = "failed";
+                paymentStatusText = AppConstants.STRING.STATUS_PAYMENT_FAILED;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -227,6 +183,26 @@ public class AppController {
         model.addAttribute("paymentStatus", paymentStatusText);
 
         return "redirect-ui";
+    }
+
+
+
+    public boolean addPoints(long amount, String transactionId, String merchantTransactionId, String userEmail){
+
+        String text = "amount = "+String.valueOf(amount)+", transactionId = "+transactionId+", merchantTransactionId = "+merchantTransactionId+", userEmail = "+userEmail;
+        try {
+            appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, text, "HTML");
+        } catch (IOException e) {
+             return false;
+        }
+        return true;
+    }
+
+    @GetMapping("/test")
+    @ResponseBody
+    public String test() {
+
+        return test2+paymentResultGlobal.toString();
     }
 
 

@@ -60,6 +60,16 @@ public class PaymentResponse {
     public void setData(PaymentData data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "PaymentResponse{" +
+                "success=" + success +
+                ", code='" + code + '\'' +
+                ", message='" + message + '\'' +
+                ", data=" + data.toString()+
+                '}';
+    }
 }
 
 

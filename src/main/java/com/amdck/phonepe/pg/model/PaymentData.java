@@ -3,10 +3,12 @@ package com.amdck.phonepe.pg.model;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentData {
     @JsonProperty("merchantId")
     private String merchantId;
@@ -18,13 +20,17 @@ public class PaymentData {
     private String transactionId;
 
     @JsonProperty("amount")
-    private long amount;
+    private Long amount;
 
     @JsonProperty("state")
     private String state;
 
     @JsonProperty("responseCode")
     private String responseCode;
+
+    @JsonProperty("payResponseCode")
+    private String payResponseCode;
+
 
     @JsonProperty("responseCodeDescription")
     private String responseCodeDescription;
@@ -108,6 +114,30 @@ public class PaymentData {
 
     public void setPaymentInstrument(PaymentInstrument paymentInstrument) {
         this.paymentInstrument = paymentInstrument;
+    }
+
+    public String getPayResponseCode() {
+        return payResponseCode;
+    }
+
+    public void setPayResponseCode(String payResponseCode) {
+        this.payResponseCode = payResponseCode;
+    }
+
+
+    @Override
+    public String toString() {
+        return "PaymentData{" +
+                "merchantId='" + merchantId + '\'' +
+                ", merchantTransactionId='" + merchantTransactionId + '\'' +
+                ", transactionId='" + transactionId + '\'' +
+                ", amount=" + amount +
+                ", state='" + state + '\'' +
+                ", responseCode='" + responseCode + '\'' +
+                ", payResponseCode='" + payResponseCode + '\'' +
+                ", responseCodeDescription='" + responseCodeDescription + '\'' +
+                ", paymentInstrument=" + paymentInstrument.toString() +
+                '}';
     }
 }
 

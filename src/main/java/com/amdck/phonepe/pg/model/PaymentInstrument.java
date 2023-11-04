@@ -1,9 +1,11 @@
 package com.amdck.phonepe.pg.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentInstrument {
     @JsonProperty("type")
     private String type;
@@ -175,6 +177,51 @@ public class PaymentInstrument {
 
     public void setPgServiceTransactionId(String pgServiceTransactionId) {
         this.pgServiceTransactionId = pgServiceTransactionId;
+    }
+
+    public String getVpa() {
+        return vpa;
+    }
+
+    public void setVpa(String vpa) {
+        this.vpa = vpa;
+    }
+
+    public String getMaskedAccountNumber() {
+        return maskedAccountNumber;
+    }
+
+    public void setMaskedAccountNumber(String maskedAccountNumber) {
+        this.maskedAccountNumber = maskedAccountNumber;
+    }
+
+    public String getIfsc() {
+        return ifsc;
+    }
+
+    public void setIfsc(String ifsc) {
+        this.ifsc = ifsc;
+    }
+
+    @Override
+    public String toString() {
+        return "PaymentInstrument{" +
+                "type='" + type + '\'' +
+                ", utr='" + utr + '\'' +
+                ", upiTransactionId='" + upiTransactionId + '\'' +
+                ", accountHolderName='" + accountHolderName + '\'' +
+                ", cardType='" + cardType + '\'' +
+                ", pgTransactionId='" + pgTransactionId + '\'' +
+                ", bankTransactionId='" + bankTransactionId + '\'' +
+                ", pgAuthorizationCode='" + pgAuthorizationCode + '\'' +
+                ", arn='" + arn + '\'' +
+                ", bankId='" + bankId + '\'' +
+                ", brn='" + brn + '\'' +
+                ", pgServiceTransactionId='" + pgServiceTransactionId + '\'' +
+                ", vpa='" + vpa + '\'' +
+                ", maskedAccountNumber='" + maskedAccountNumber + '\'' +
+                ", ifsc='" + ifsc + '\'' +
+                '}';
     }
 
 }

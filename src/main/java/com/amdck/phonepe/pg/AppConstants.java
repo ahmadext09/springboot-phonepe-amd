@@ -13,6 +13,12 @@ public class AppConstants {
         long chatId = -4003148302L;
     }
     interface Usage {
-        String APP_BASE_URL = "https://tiny-mails-happen.loca.lt";
+        String APP_BASE_URL = "https://upset-pets-judge.loca.lt";
+    }
+
+    interface STRING {
+        String STATUS_SUCCESS = "Success, Points Added";
+        String STATUS_PROCESS_FAILED = "Process failed, please contant our customer team";
+        String STATUS_PAYMENT_FAILED = "Payment failed";
     }
 }

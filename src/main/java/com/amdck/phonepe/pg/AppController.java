@@ -1,7 +1,6 @@
 package com.amdck.phonepe.pg;
 
 
-
 import com.amdck.phonepe.pg.model.PaymentResponse;
 import com.amdck.phonepe.pg.model.PhonepeOrder;
 import com.amdck.phonepe.pg.model.ResultModel;
@@ -11,16 +10,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.Base64;
-
 
 
 @Controller
@@ -38,25 +33,21 @@ public class AppController {
     String debugSaltKey = "05b8ed83-51ef-49ae-bb8b-aac4df140457";
     String debugMID = "PGTESTPAYUAT111";
     String debugApiUrl = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
-
-    String globalMerchantTransId="";
-
-    int getEndPointCounter = 0;
+    String debugBaseStatusUrl = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status/";
 
 
     @PostMapping(AppConstants.Endpoints.INITIATE_PHONEPE_TXN)
     @ResponseBody
     public ResponseEntity<String> initiatePhonePeTxn(@RequestBody PhonepeOrder phonepeOrder) throws JSONException {
         String MERCHANT_TRANSACTION_ID = String.valueOf(System.currentTimeMillis());
-        globalMerchantTransId = MERCHANT_TRANSACTION_ID;
         JSONObject phonePeBody = new JSONObject();
         phonePeBody.put("merchantId", debugMID);
         phonePeBody.put("merchantTransactionId", MERCHANT_TRANSACTION_ID);
         phonePeBody.put("amount", Double.toString(phonepeOrder.getAmount()).replace(".", "") + "0");
-        phonePeBody.put("merchantUserId", "samsungs9");
-        phonePeBody.put("redirectUrl", AppConstants.Usage.APP_BASE_URL + "/api/ui-redirect-url?merchantId=PGTESTPAYUAT111&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
+        phonePeBody.put("merchantUserId", Long.toString(phonepeOrder.getUserId()));
+        phonePeBody.put("redirectUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.REDIRECT_URL + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
         phonePeBody.put("redirectMode", "REDIRECT");
-        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + "/api/phonepe-callback?merchantId=PGTESTPAYUAT111&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
+        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.PHONEPE_CALLBACK + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
         JSONObject paymentInstrument = new JSONObject();
         paymentInstrument.put("type", "PAY_PAGE");
         phonePeBody.put("paymentInstrument", paymentInstrument);
@@ -83,11 +74,7 @@ public class AppController {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(
-                debugApiUrl,
-                HttpMethod.POST,
-                requestEntity,
-                String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(debugApiUrl, HttpMethod.POST, requestEntity, String.class);
 
         return responseEntity.getBody();
         /*if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -105,6 +92,7 @@ public class AppController {
         test = requestBody;
         String result = requestBody;
 
+
         ObjectMapper objectMapper = new ObjectMapper();
         ResultModel resultModel = objectMapper.readValue(result, ResultModel.class);
 
@@ -112,30 +100,28 @@ public class AppController {
 
         byte[] decodedBytes = Base64.getDecoder().decode(base64EncodedData);
         String resultjson = new String(decodedBytes);
-        test2=resultjson;
+        test2 = resultjson;
         ObjectMapper paymentObjectMapper = new ObjectMapper();
         PaymentResponse paymentResponse = paymentObjectMapper.readValue(resultjson, PaymentResponse.class);
-        if(paymentResponse != null){
-            paymentResultGlobal = paymentResponse;
+
+        if (paymentResponse.isSuccess() && paymentResponse.getCode().equals(AppConstants.CODE.PAYMENT_SUCCESS)) {
+            boolean isPointAdded = addPoints(paymentResponse.getData().getAmount(), paymentResponse.getData().getTransactionId(), paymentResponse.getData().getMerchantTransactionId(), userEmail);
         }
 
-
-        String payAmt= String.valueOf(paymentResponse.getData().getAmount());
-
-
-        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, payAmt, "HTML");
+//        String payAmt= String.valueOf(paymentResponse.getData().getAmount());
+//
+//
+//        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, payAmt, "HTML");
         return new ResponseEntity<>("ok", HttpStatus.OK);
     }
 
 
+    public String callCheckStatusApi(String merchantId, String merchantTransactionId) {
 
-
-    public String callCheckStatusApi( String merchantId, String merchantTransactionId){
-
-        String pgStatusUrl = "/pg/v1/status/"+ merchantId +"/"+ merchantTransactionId;
+        String pgStatusUrl = "/pg/v1/status/" + merchantId + "/" + merchantTransactionId;
         String sha256 = AppUtility.hashToSHA256(pgStatusUrl + debugSaltKey);
         String xVerify = sha256 + "###1";
-        String debugStatusApiUrl = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status/"+merchantId+"/"+merchantTransactionId;
+        String debugStatusApiUrl = debugBaseStatusUrl + merchantId + "/" + merchantTransactionId;
 
 
         RestTemplate restTemplate = new RestTemplate();
@@ -146,39 +132,32 @@ public class AppController {
         headers.set("x-merchant-id", merchantId);
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(
-                debugStatusApiUrl,
-                HttpMethod.GET,
-                requestEntity,
-                String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(debugStatusApiUrl, HttpMethod.GET, requestEntity, String.class);
 
         return responseEntity.getBody();
     }
 
 
-
-
-
-    @GetMapping("/ui-redirect-url")
+    @GetMapping(AppConstants.Endpoints.REDIRECT_URL)
     public String redirectUIPage(@RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, @RequestParam("userEmail") String userEmail, Model model) {
 
         String paymentStatusText = "processing please wait";
         String result = callCheckStatusApi(merchantId, merchantTransactionId);
         ObjectMapper paymentObjectMapper = new ObjectMapper();
+        PaymentResponse paymentStatus = null;
         try {
-            PaymentResponse paymentStatus = paymentObjectMapper.readValue(result, PaymentResponse.class);
-            if (paymentStatus.isSuccess()) {
-                boolean isPointsAdded = addPoints(paymentStatus.getData().getAmount(), paymentStatus.getData().getTransactionId(), paymentStatus.getData().getMerchantTransactionId(), userEmail);
-                if (isPointsAdded) {
-                    paymentStatusText = AppConstants.STRING.STATUS_SUCCESS;
-                } else {
-                    paymentStatusText = AppConstants.STRING.STATUS_PROCESS_FAILED;
-                }
-            } else
-                paymentStatusText = AppConstants.STRING.STATUS_PAYMENT_FAILED;
+            paymentStatus = paymentObjectMapper.readValue(result, PaymentResponse.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+        if (paymentStatus.isSuccess()) {
+            if (paymentStatus.getCode().equals(AppConstants.CODE.PAYMENT_SUCCESS)) {
+                paymentStatusText = AppConstants.STRING.STATUS_SUCCESS;
+            } else {
+                paymentStatusText = AppConstants.STRING.STATUS_PAYMENT_FAILED;
+            }
+        } else paymentStatusText = AppConstants.STRING.STATUS_PROCESS_FAILED;
+
 
         model.addAttribute("paymentStatus", paymentStatusText);
 
@@ -186,14 +165,13 @@ public class AppController {
     }
 
 
+    public boolean addPoints(long amount, String transactionId, String merchantTransactionId, String userEmail) {
 
-    public boolean addPoints(long amount, String transactionId, String merchantTransactionId, String userEmail){
-
-        String text = "amount = "+String.valueOf(amount)+", transactionId = "+transactionId+", merchantTransactionId = "+merchantTransactionId+", userEmail = "+userEmail;
+        String text = "amount = " + String.valueOf(amount) + ", transactionId = " + transactionId + ", merchantTransactionId = " + merchantTransactionId + ", userEmail = " + userEmail;
         try {
             appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, text, "HTML");
         } catch (IOException e) {
-             return false;
+            return false;
         }
         return true;
     }
@@ -202,9 +180,8 @@ public class AppController {
     @ResponseBody
     public String test() {
 
-        return test2+paymentResultGlobal.toString();
+        return test2 + paymentResultGlobal.toString();
     }
-
 
 
 }

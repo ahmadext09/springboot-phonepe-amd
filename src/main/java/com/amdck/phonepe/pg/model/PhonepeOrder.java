@@ -3,11 +3,14 @@ package com.amdck.phonepe.pg.model;
 public class PhonepeOrder {
     private double amount;
     private String email;
+    private long userId;
 
 
-    public PhonepeOrder(double amount, String email) {
+    public PhonepeOrder(double amount, String email, long userId) {
         this.amount = amount;
         this.email = email;
+        this.userId = userId;
+
     }
 
 
@@ -25,7 +28,7 @@ public class PhonepeOrder {
         this.amount = amount;
     }
 
-    // Getter for email
+
     public String getEmail() {
         return email;
     }
@@ -35,11 +38,22 @@ public class PhonepeOrder {
         this.email = email;
     }
 
+    public long getUserId() {
+        return userId;
+    }
+
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+
     @Override
     public String toString() {
         return "PhonepeOrder{" +
                 "amount=" + amount +
                 ", email='" + email + '\'' +
+                "userId=" + userId +
                 '}';
     }
 

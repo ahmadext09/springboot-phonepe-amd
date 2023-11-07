@@ -17,7 +17,7 @@ public class AppConstants {
         long chatId = -4003148302L;
     }
     interface Usage {
-        String APP_BASE_URL = "https://loose-wombats-swim.loca.lt";
+        String APP_BASE_URL = "https://pink-moose-beam.loca.lt";
     }
 
     interface STRING {

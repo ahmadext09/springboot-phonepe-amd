@@ -2,6 +2,7 @@ package com.amdck.phonepe.pg;
 
 
 import com.amdck.phonepe.pg.model.PaymentResponse;
+import com.amdck.phonepe.pg.model.PhonePeRedirectModel;
 import com.amdck.phonepe.pg.model.PhonepeOrder;
 import com.amdck.phonepe.pg.model.ResultModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,10 +11,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.Base64;
 
@@ -46,8 +50,9 @@ public class AppController {
         phonePeBody.put("amount", Double.toString(phonepeOrder.getAmount()).replace(".", "") + "0");
         phonePeBody.put("merchantUserId", Long.toString(phonepeOrder.getUserId()));
         phonePeBody.put("redirectUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.REDIRECT_URL + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
+       // phonePeBody.put("redirectUrl",AppConstants.Usage.APP_BASE_URL+AppConstants.Endpoints.REQUEST_MAPPING+"/redirect");
         phonePeBody.put("redirectMode", "REDIRECT");
-        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.PHONEPE_CALLBACK + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail());
+        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.PHONEPE_CALLBACK + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail()+"&userAmount="+phonepeOrder.getAmount());
         JSONObject paymentInstrument = new JSONObject();
         paymentInstrument.put("type", "PAY_PAGE");
         phonePeBody.put("paymentInstrument", paymentInstrument);
@@ -61,6 +66,7 @@ public class AppController {
         //return phonePeBody + "\n\n" + AppUtility.encodeToBase64(phonePeBody.toString()) + "\n\n" + xVerify + "\n\n" + debugCurl;
         return new ResponseEntity<>(callExternalApi(xVerify, request), HttpStatus.OK);
     }
+
 
     public String callExternalApi(String xVerify, String request) {
         RestTemplate restTemplate = new RestTemplate();
@@ -87,7 +93,7 @@ public class AppController {
 
     @PostMapping(AppConstants.Endpoints.PHONEPE_CALLBACK)
     @ResponseBody
-    public ResponseEntity<String> phonepeCallback(@RequestBody String requestBody, @RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, @RequestParam("userEmail") String userEmail) throws IOException {
+    public ResponseEntity<String> phonepeCallback(@RequestBody String requestBody, @RequestParam("merchantId") String merchantId, @RequestParam("merchantTransactionId") String merchantTransactionId, @RequestParam("userEmail") String userEmail, @RequestParam("userAmount") double userAmount) throws IOException {
 
         test = requestBody;
         String result = requestBody;
@@ -104,7 +110,7 @@ public class AppController {
         ObjectMapper paymentObjectMapper = new ObjectMapper();
         PaymentResponse paymentResponse = paymentObjectMapper.readValue(resultjson, PaymentResponse.class);
 
-        if (paymentResponse.isSuccess() && paymentResponse.getCode().equals(AppConstants.CODE.PAYMENT_SUCCESS)) {
+        if (paymentResponse.isSuccess() && paymentResponse.getCode().equals(AppConstants.CODE.PAYMENT_SUCCESS) && userAmount== (double) paymentResponse.getData().getAmount() / 100.0) {
             boolean isPointAdded = addPoints(paymentResponse.getData().getAmount(), paymentResponse.getData().getTransactionId(), paymentResponse.getData().getMerchantTransactionId(), userEmail);
         }
 
@@ -114,6 +120,7 @@ public class AppController {
 //        appService.sendMessage(AppConstants.Telegram.botToken, AppConstants.Telegram.chatId, payAmt, "HTML");
         return new ResponseEntity<>("ok", HttpStatus.OK);
     }
+
 
 
     public String callCheckStatusApi(String merchantId, String merchantTransactionId) {
@@ -131,10 +138,29 @@ public class AppController {
         headers.set("x-verify", xVerify);
         headers.set("x-merchant-id", merchantId);
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+       // ResponseEntity<String> responseEntity;
+        int maxRetries = 12; // Maximum number of retries
+        int retryDelayMilliseconds = 5000; // Delay in milliseconds (2 seconds)
+        for (int retryCount = 0; retryCount < maxRetries; retryCount++) {
+            try {
+                ResponseEntity<String> responseEntity = restTemplate.exchange(debugStatusApiUrl, HttpMethod.GET, requestEntity, String.class);
+                if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                    return responseEntity.getBody(); // Successful response, exit the loop
+                }
+            }catch (Exception e){
+                try {
+                    Thread.sleep(retryDelayMilliseconds); // Wait for the specified delay before retrying
+                } catch (InterruptedException err) {
+                    Thread.currentThread().interrupt();
+                }
+            }
 
-        ResponseEntity<String> responseEntity = restTemplate.exchange(debugStatusApiUrl, HttpMethod.GET, requestEntity, String.class);
 
-        return responseEntity.getBody();
+        }
+
+
+        throw new RuntimeException("API call failed after maximum retries.");
+
     }
 
 
@@ -181,6 +207,50 @@ public class AppController {
     public String test() {
 
         return test2 + paymentResultGlobal.toString();
+    }
+
+
+   @PostMapping("/redirect")
+    public  String redirect (@RequestParam("code") String responseCode,
+                             @RequestParam("merchantId") String merchantId,
+                             @RequestParam("transactionId") String transactionId,
+                             @RequestParam("amount") long amount,
+                             @RequestParam("providerReferenceId") String providerReferenceId, Model model) throws JsonProcessingException {
+     //  String result = requestBody;
+//       PhonePeRedirectModel rep =requestBody;
+
+//       ObjectMapper paymentObjectMapper = new ObjectMapper();
+//       PhonePeRedirectModel redirectResponse = paymentObjectMapper.readValue(rep, PhonePeRedirectModel.class);
+
+       PhonePeRedirectModel response = new PhonePeRedirectModel();
+       response.setCode(responseCode);
+       response.setMerchantId(merchantId);
+       response.setTransactionId(transactionId);
+       response.setAmount(amount);
+       response.setProviderReferenceId(providerReferenceId);
+
+
+       String paymentStatusText = "processing please wait";
+        String statusResult = callCheckStatusApi(response.getMerchantId(), response.getTransactionId());
+        ObjectMapper paymentStatusObjectMapper = new ObjectMapper();
+        PaymentResponse paymentStatus = null;
+        try {
+            paymentStatus = paymentStatusObjectMapper.readValue(statusResult, PaymentResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        if (paymentStatus.isSuccess()) {
+            if (paymentStatus.getCode().equals(AppConstants.CODE.PAYMENT_SUCCESS)) {
+                paymentStatusText = AppConstants.STRING.STATUS_SUCCESS;
+            } else {
+                paymentStatusText = AppConstants.STRING.STATUS_PAYMENT_FAILED;
+            }
+        } else paymentStatusText = AppConstants.STRING.STATUS_PROCESS_FAILED;
+
+
+        model.addAttribute("paymentStatus", paymentStatusText);
+
+        return "redirect-ui";
     }
 
 

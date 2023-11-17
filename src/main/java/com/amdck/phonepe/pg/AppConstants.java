@@ -4,8 +4,11 @@ public class AppConstants {
 
     interface Endpoints {
         String INITIATE_PHONEPE_TXN = "/initiate_payment";
+        String INITIATE_PHONEPE_TXN_INTENT = "/initiate_payment_intent";
 
         String PHONEPE_CALLBACK = "/phonepe-callback";
+
+        String INITIATE_PHONEPE_TXN_SDK = "/initiate_payment_sdk";
 
         String REDIRECT_URL = "/ui-redirect-url";
 
@@ -17,7 +20,7 @@ public class AppConstants {
         long chatId = -4003148302L;
     }
     interface Usage {
-        String APP_BASE_URL = "https://pink-moose-beam.loca.lt";
+        String APP_BASE_URL = "https://happy-pans-cheat.loca.lt";
     }
 
     interface STRING {

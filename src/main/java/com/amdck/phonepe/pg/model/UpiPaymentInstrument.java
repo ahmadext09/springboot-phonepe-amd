@@ -15,7 +15,7 @@ public class UpiPaymentInstrument {
         @JsonProperty("intentUrl")
         private String intentUrl;
 
-        // Getters and setters
+
 
         public String getType() {
             return type;

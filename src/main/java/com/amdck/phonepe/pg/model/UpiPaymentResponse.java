@@ -21,7 +21,7 @@ public class UpiPaymentResponse {
         @JsonProperty("data")
         private UPIPaymentData data;
 
-        // Getters and setters
+
 
         public boolean isSuccess() {
             return success;

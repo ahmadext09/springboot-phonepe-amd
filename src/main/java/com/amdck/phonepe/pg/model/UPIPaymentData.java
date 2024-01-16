@@ -17,7 +17,7 @@ public class UPIPaymentData {
         @JsonProperty("instrumentResponse")
         private UpiPaymentInstrument instrumentResponse;
 
-        // Getters and setters
+
 
         public String getMerchantId() {
             return merchantId;

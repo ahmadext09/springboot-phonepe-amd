@@ -32,12 +32,13 @@ public class PhonePeSdkController {
     public ResponseEntity<PhonePeSdkResponse> initiatePhonePeTxnSdk(@RequestBody PhonepeOrder phonepeOrder) throws JSONException {
         String MERCHANT_TRANSACTION_ID = String.valueOf(System.currentTimeMillis());
         JSONObject phonePeBody = new JSONObject();
-        phonePeBody.put("merchantId", debugMID);
+        phonePeBody.put("merchantId", prodMID);
         phonePeBody.put("merchantTransactionId", MERCHANT_TRANSACTION_ID);
         phonePeBody.put("amount", Double.toString(phonepeOrder.getAmount()).replace(".", "") + "0");
         phonePeBody.put("merchantUserId", Long.toString(phonepeOrder.getUserId()));
+        phonePeBody.put("mobileNumber", "9616987031");
 
-        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.PHONEPE_CALLBACK + "?merchantId=" + debugMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail() + "&userAmount=" + phonepeOrder.getAmount());
+        phonePeBody.put("callbackUrl", AppConstants.Usage.APP_BASE_URL + AppConstants.Endpoints.REQUEST_MAPPING + AppConstants.Endpoints.PHONEPE_CALLBACK + "?merchantId=" + prodMID + "&merchantTransactionId=" + MERCHANT_TRANSACTION_ID + "&userEmail=" + phonepeOrder.getEmail() + "&userAmount=" + phonepeOrder.getAmount());
         JSONObject deviceContext = new JSONObject();
         deviceContext.put("deviceOS", "ANDROID");
         phonePeBody.put("deviceContext", deviceContext);
@@ -49,7 +50,7 @@ public class PhonePeSdkController {
 
         String request = AppUtility.encodeToBase64(phonePeBody.toString());
 
-        String sha256 = AppUtility.hashToSHA256(request + pgUrl + debugSaltKey);
+        String sha256 = AppUtility.hashToSHA256(request + pgUrl + prodSaltKey);
         String xVerify = sha256 + "###1";
         PhonePeSdkResponse response = new PhonePeSdkResponse(request, xVerify);
 

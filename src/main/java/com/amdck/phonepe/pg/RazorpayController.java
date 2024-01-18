@@ -82,7 +82,7 @@ public class RazorpayController {
     }
 
     public boolean addPoints(OrderPaidEvent orderPaidEvent) {
-        String email = orderPaidEvent.getPayload().getPayment().getEntity().getEmail();
+        String email = orderPaidEvent.getPayload().getPayment().getEntity().getNotes().getUserEmail();
         String receipt = orderPaidEvent.getPayload().getOrder().getEntity().getReceipt();
         String payment_id = orderPaidEvent.getPayload().getPayment().getEntity().getId();
         Integer amount = orderPaidEvent.getPayload().getPayment().getEntity().getAmount();

@@ -29,7 +29,7 @@ public class AppConstants {
     }
 
     interface Usage {
-        String APP_BASE_URL = "https://silent-hoops-work.loca.lt";
+        String APP_BASE_URL = "https://late-sites-accept.loca.lt";
 
         String INDIAN_CURRENCY_ISO_CODE = "INR";
     }

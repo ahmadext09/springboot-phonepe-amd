@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -69,6 +70,10 @@ public class PaymentEntity {
 
     @JsonProperty("contact")
     private String contact;
+
+
+    @JsonProperty("notes")
+    private Notes notes;
 
     @JsonProperty("fee")
     private int fee;
@@ -344,6 +349,15 @@ public class PaymentEntity {
         this.created_at = created_at;
     }
 
+    public Notes getNotes() {
+        return notes;
+    }
+
+    public void setNotes(Notes notes) {
+        this.notes = notes;
+    }
+
+
 
     @Override
     public String toString() {
@@ -375,5 +389,7 @@ public class PaymentEntity {
                 ", created_at=" + created_at +
                 '}';
     }
+
+
 
 }

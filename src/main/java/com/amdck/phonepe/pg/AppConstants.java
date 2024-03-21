@@ -6,6 +6,8 @@ public class AppConstants {
         String INITIATE_PHONEPE_TXN = "/initiate_payment";
         String INITIATE_PHONEPE_TXN_INTENT = "/initiate_payment_intent";
 
+        String INITIATE_PAYTM_TXN = "/initiate_paytm_transaction";
+
         String PHONEPE_CALLBACK = "/phonepe-callback";
 
         String INITIATE_PHONEPE_TXN_SDK = "/initiate_payment_sdk";
@@ -29,7 +31,7 @@ public class AppConstants {
     }
 
     interface Usage {
-        String APP_BASE_URL = "https://late-sites-accept.loca.lt";
+        String APP_BASE_URL = "https://every-terms-double.loca.lt";
 
         String INDIAN_CURRENCY_ISO_CODE = "INR";
     }
@@ -51,5 +53,19 @@ public class AppConstants {
         String razorpaySecret = "jDcmFuoJNKUS28yiUdXlUToC";
 
         String razorpayTestSecret = "9iPTlKgJb7ZRqTjnAbmEomx0";
+    }
+
+    interface PAYTM_KEYS {
+        String paytmMIdProd = "zomsNZ69103695781960";
+        String paytmKeyProd = "cbeBYdhM5koQ1T1v";
+
+        String testPaytmMId = "xrEnZj83504690328915";
+
+        String testPaytmKey = "WG@xXSTMADb#EGEV";
+
+        String paytmTransactionApiProdBaseUrl = "https://securegw.paytm.in/theia/api/v1/initiateTransaction?mid=%s&orderId=%s";
+        String paytmTransactionApiStagingBaseUrl = "https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid=%s&orderId=%s";
+
+        String PAYTM_STATUS_SUCCESS = "TXN_SUCCESS";
     }
 }

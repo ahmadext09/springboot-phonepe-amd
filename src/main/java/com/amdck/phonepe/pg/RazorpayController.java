@@ -99,5 +99,13 @@ public class RazorpayController {
     }
 
 
+    public String callIpApi() {
+        final String apiUrl = "http://ip-api.com/?fields=status,message,country,countryCode,city";
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiUrl, String.class);
+        return responseEntity.getBody();
+    }
+
+
 
 }

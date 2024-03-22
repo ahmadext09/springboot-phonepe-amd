@@ -52,7 +52,7 @@ public class PaytmController {
             txnAmount.put("currency", "INR");
 
             JSONObject userInfo = new JSONObject();
-            userInfo.put("custId", "ahmethan0912");
+            userInfo.put("custId", paytmTxnOrder.getCustId());
             userInfo.put("email", paytmTxnOrder.getEmail());
 
             JSONObject extendInfo = new JSONObject();
@@ -79,8 +79,25 @@ public class PaytmController {
             resultBody.put("orderId", body.getString("orderId"));
             resultBody.put("amount", txnAmount.getString("value"));
             return ResponseEntity.ok().body(responseBody.toString());
+
+
+//            JSONObject responseBody = new JSONObject(responseEntity.getBody());
+//            JSONObject resultBody = responseBody.getJSONObject("body");
+//            JSONObject resultInfo = resultBody.getJSONObject("resultInfo");
+//
+//            if (resultInfo.getString("resultStatus").equals("S")) {
+//
+//                String orderId = resultBody.getString("orderId");
+//                String amount = resultBody.getString("amount");
+//
+//                resultBody.put("orderId", orderId);
+//                resultBody.put("amount", amount);
+//            }
+//
+//            return ResponseEntity.ok().body(responseBody.toString());
+
         } catch (Exception exception) {
-//            exception.printStackTrace();
+            exception.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error : " + exception.getMessage());
         }
     }
@@ -100,10 +117,10 @@ public class PaytmController {
                     requestEntity,
                     String.class
             );
-
+            System.out.println("response: " + responseEntity.toString());
             return responseEntity;
         } catch (Exception exception) {
-//            exception.printStackTrace();
+            exception.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred during API call: " + exception.getMessage());
         }
     }

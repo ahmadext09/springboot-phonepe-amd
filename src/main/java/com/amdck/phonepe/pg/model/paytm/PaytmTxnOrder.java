@@ -23,5 +23,8 @@ public class PaytmTxnOrder {
 
     @JsonProperty("orderId")
     private String orderId;
+
+    @JsonProperty("custId")
+    private String custId;
 }
 

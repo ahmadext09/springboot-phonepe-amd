@@ -31,7 +31,7 @@ public class AppConstants {
     }
 
     interface Usage {
-        String APP_BASE_URL = "https://every-terms-double.loca.lt";
+        String APP_BASE_URL = "https://tall-eels-join.loca.lt";
 
         String INDIAN_CURRENCY_ISO_CODE = "INR";
     }
